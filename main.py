@@ -1,6 +1,6 @@
 import pygame
 import random
-
+import json
 #Creating list of words
 words = []
 f = open('words.txt', 'r')
