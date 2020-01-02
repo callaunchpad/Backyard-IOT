@@ -4,7 +4,6 @@ bed
 book
 boy
 bun
-can
 cake
 cap
 car
