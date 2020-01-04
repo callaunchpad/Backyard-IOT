@@ -22,7 +22,7 @@ def lost(screen, word):
     screen.fill(white)
     msg = 'You Lost! The Correct Word was ' + word + '.'
     display = big_font.render(msg, True, black)
-    text_rect = display.get_rect(center = (675, 375))
+    text_rect = display.get_rect(center = (675, 325))
     screen.blit(display, text_rect)
     pygame.display.update()
     time.sleep(3)
@@ -117,7 +117,7 @@ def main():
             if wrong == 6:
                 lost(screen, word)
             elif correct == len(word):
-                win(screen, word, correct - wrong)
+                win(screen, word, 5 - wrong)
 
         pygame.display.update()
 
