@@ -86,6 +86,7 @@ def main():
                 # Checking if key pressed is a-z by looking at ASCII value
                 if 97 <= event.key <= 122:
                     letter = event.unicode
+                    # Going through different scenarios of letter press
                     if letter in seen:
                         msg = "This Letter Has Already Been Guessed!"
                         display = big_font.render(msg, False, red)
@@ -112,6 +113,7 @@ def main():
                         screen.blit(display, text_rect)
                         seen.append(letter)
 
+            # Ending
             if wrong == 6:
                 lost(screen, word)
             elif correct == len(word):
