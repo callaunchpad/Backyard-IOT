@@ -7,6 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">    
 <title>show temp</title>
 
+<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
+
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
@@ -23,7 +25,7 @@
 <div class="container-fluid">
     <div class="jumbotron">
         <hr class="my-4">
-        <h1 class="display-4"> {{ animal }} </h1>
+        <h1 class="display-4" id="animal">Loading...</h1>
         <p class="lead">animal outside</p>
         <hr class="my-4">
     </div>        
@@ -31,3 +33,19 @@
 
 </body>
 </html>
+
+
+<script>
+    $(document).ready(function() {
+    setInterval(function() {
+        $.ajax({
+            url: "/animals",
+            success: function( result ) {
+                console.log(result);
+                $("#animal").text(result);
+            }
+        });
+    }, 3000);
+    });
+    
+</script>
