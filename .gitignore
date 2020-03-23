@@ -1,8 +1,0 @@
-.DS_Store
-.ipynb_checkpoints
-eccv_18_all_images_sm
-images.npy
-label_to_animal.npz
-labels.npy
-CaltechCameraTrapsECCV18.json
-.gitignore
