@@ -1,54 +1,50 @@
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 import keras
 from keras import applications
-from keras.models import load_model
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import LearningRateScheduler
 import numpy as np
 from sklearn.model_selection import train_test_split
-import pickle
-import os
 
-labels = np.load('labels.npy')
-animals = np.load('label_to_animal.npz')
-for i in animals:
-    print(i)
-animals = animals['arr_0']
-animals.shape
+strategy = tf.distribute.MirroredStrategy()
 
 images = np.load('images.npy')
-images.shape
+labels = np.load('labels.npy')
+print(images.shape)
+INPUT_SHAPE = images[0].shape
 
-X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.3)
+X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.1)
+del images
+del labels
 
-base_model = load_model("base_model.h5")
+y_lst = list(np.argmax(y_train, axis=1))
+unique, counts = np.unique(np.argmax(y_train, axis=1), return_counts=True)
+class_weights = {unique[i]:counts[i] for i in range(len(unique))}
+for i in range(NUM_CLASSES):
+    if i not in class_weights:
+        class_weights[i] = 0
+        
+base_model = applications.resnet50.ResNet50(weights=None, include_top=False, input_shape=INPUT_SHAPE)
 
+DROPOUT = 0.2
 x = base_model.output
 x = keras.layers.GlobalAveragePooling2D()(x)
-x = keras.layers.Dropout(0.2)(x)
-predictions = keras.layers.Dense(16, activation= 'softmax')(x)
-model = keras.models.Model(inputs = base_model.input, outputs = predictions)
+x = keras.layers.Dropout(DROPOUT)(x)
+predictions = keras.layers.Dense(NUM_CLASSES, activation= 'softmax')(x)
 
 from keras.optimizers import Adam
-run_opts = tf.RunOptions(report_tensor_allocations_upon_oom = True)
-# sgd = SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
 
-adam = Adam(lr=0.001)
-model.compile(optimizer= adam, loss='categorical_crossentropy', metrics=['accuracy'])
-#changed loss to binary crossentropy from categorical_crossentropy to see what would happen
+adam = Adam(lr=0.005)
 
-BATCH_SIZE=32
-EPOCHS = 30
+with strategy.scope():
+    model = keras.models.Model(inputs = base_model.input, outputs = predictions)
+    model.compile(optimizer= adam, loss='categorical_crossentropy', metrics=['accuracy'])
+    
+NUM_EPOCHS = 100
+BATCH_SIZE = 10
 
-# This function keeps the learning rate at 0.001 for the first ten epochs
-# and decreases it exponentially after that.
-def scheduler(epoch):
-  if epoch < 10:
-    return 0.001
-  else:
-    return 0.001 * tf.math.exp(0.1 * (10 - epoch))
-
-callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
-
-model.fit(X_train, y_train, epochs = EPOCHS, callbacks=[callback], batch_size=BATCH_SIZE, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs = NUM_EPOCHS, batch_size = BATCH_SIZE,
+          validation_data=(X_test, y_test), class_weight=class_weights)
 
 print('\n# Evaluate on test data')
 results = model.evaluate(X_test, y_test, batch_size=BATCH_SIZE)
