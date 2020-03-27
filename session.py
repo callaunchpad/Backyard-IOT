@@ -11,6 +11,7 @@ from collections import Counter
 
 DIR='data'
 WIDTH, HEIGHT, CHANNELS = (512, 384, 3)
+VALIDATION_SPLIT=4800/57864
 
 DROPOUT = 0.3
 
@@ -22,7 +23,7 @@ datagen = ImageDataGenerator(rescale=1./255,
     shear_range=0.2,
     zoom_range=0.2,
     horizontal_flip=True,
-    validation_split=1/12)
+    validation_split=VALIDATION_SPLIT)
 
 train_generator = datagen.flow_from_directory(
     DIR,
