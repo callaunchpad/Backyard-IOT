@@ -10,8 +10,7 @@ from keras.models import Model
 from collections import Counter
 
 DIR='data'
-DIM=(512, 384)
-INPUT_SHAPE=(DIM[1], DIM[0], 3)
+WIDTH, HEIGHT, CHANNELS = (512, 384, 3)
 
 DROPOUT = 0.3
 
@@ -27,21 +26,21 @@ datagen = ImageDataGenerator(rescale=1./255,
 
 train_generator = datagen.flow_from_directory(
     DIR,
-    target_size=DIM,
+    target_size=(HEIGHT, WIDTH),
     batch_size=BATCH_SIZE,
     subset='training')
 
 validation_generator = datagen.flow_from_directory(
     DIR,
-    target_size=DIM,
+    target_size=(HEIGHT, WIDTH),
     batch_size=BATCH_SIZE,
     subset='validation')
 
 counter = Counter(train_generator.classes)                        
-max_val = float(max(values))       
+max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-base_model = ResNet50(weights=None, include_top=False, input_shape=INPUT_SHAPE)
+base_model = ResNet50(weights=None, include_top=False, input_shape=(HEIGHT, WIDTH, CHANNELS))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 x = Dropout(DROPOUT)(x)
