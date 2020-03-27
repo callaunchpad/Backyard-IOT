@@ -51,7 +51,7 @@ with strategy.scope():
     model = Model(inputs = base_model.input, outputs = predictions)
     model.compile(optimizer=Adam(lr=INIT_LR), loss='categorical_crossentropy', metrics=['accuracy'])
     
-    model.fit_generator(
+model.fit_generator(
     train_generator,
     steps_per_epoch = train_generator.samples // BATCH_SIZE,
     validation_data = validation_generator,
@@ -60,5 +60,8 @@ with strategy.scope():
     class_weight=class_weights,
     shuffle=True
 )
+
+model.evaluate_generator(generator=validation_generator,
+steps=validation_generator.samples // BATCH_SIZE)
     
 model.save('model.h5')
