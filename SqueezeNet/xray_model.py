@@ -9,47 +9,34 @@ import tensorflow as tf
 
 from collections import Counter
 
-WIDTH, HEIGHT = (664, 485)
+WIDTH, HEIGHT = (300, 300)
 
 DROPOUT=0.2
 CLASSES=2
-BATCH_SIZE=16
+BATCH_SIZE=32
 NUM_EPOCHS=20
-INIT_LR=0.0001
+INIT_LR=0.0005
 
-BASE_PATH = 'data/chest_xray/'
-TRAIN_PATH = BASE_PATH + 'train'
-VAL_PATH = BASE_PATH + 'val'
-TEST_PATH = BASE_PATH + 'test'
+PATH = 'animals10/raw-img/'
 
-train_datagen = ImageDataGenerator(rescale=1./255,
-    shear_range=0.2,
-    zoom_range=0.2,
-    rotation_range=10,
-    horizontal_flip=True)
-
-test_datagen = ImageDataGenerator(rescale=1./255)
+datagen = ImageDataGenerator(rescale=1./255,
+    validation_split=0.1)
 
 train_generator = train_datagen.flow_from_directory(
-    TRAIN_PATH,
+    PATH,
     target_size=(HEIGHT, WIDTH),
     color_mode='rgb',
     class_mode='categorical',
-    batch_size=BATCH_SIZE)
+    batch_size=BATCH_SIZE,
+    subset='training')
 
 validation_generator = test_datagen.flow_from_directory(
-    VAL_PATH,
+    PATH,
     target_size=(HEIGHT, WIDTH),
     color_mode='rgb',
     class_mode='categorical',
-    batch_size=BATCH_SIZE)
-
-test_generator = test_datagen.flow_from_directory(
-    TEST_PATH,
-    target_size=(HEIGHT, WIDTH),
-    color_mode='rgb',
-    class_mode='categorical',
-    batch_size=BATCH_SIZE)
+    batch_size=BATCH_SIZE,
+    subset='validation)
 
 counter = Counter(train_generator.classes)                        
 max_val = float(max(counter.values()))       
@@ -83,8 +70,8 @@ model.fit_generator(
     shuffle=True
 )
 
-results = model.evaluate_generator(generator=test_generator,
-                         steps=test_generator.samples // BATCH_SIZE)
-print('RESULTS:', {key: val for key, val in zip(model.metrics_names, results)})
+#results = model.evaluate_generator(generator=test_generator,
+#                         steps=test_generator.samples // BATCH_SIZE)
+#print('RESULTS:', {key: val for key, val in zip(model.metrics_names, results)})
     
 model.save('model.h5')
