@@ -1,0 +1,8 @@
+SqueezeNet/animals10
+.DS_Store
+.ipynb_checkpoints
+Caltech*
+eccv*
+old
+data
+SqueezeNet/base_model.h5
