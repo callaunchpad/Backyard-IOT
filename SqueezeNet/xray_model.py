@@ -36,7 +36,7 @@ validation_generator = test_datagen.flow_from_directory(
     color_mode='rgb',
     class_mode='categorical',
     batch_size=BATCH_SIZE,
-    subset='validation)
+    subset='validation')
 
 counter = Counter(train_generator.classes)                        
 max_val = float(max(counter.values()))       
