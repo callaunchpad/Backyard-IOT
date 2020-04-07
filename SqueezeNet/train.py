@@ -1,6 +1,15 @@
+"""
+Changes:
+ - doubled learning rate
+ - decreased dropout by 1/2
+ - took out shuffle parameter in fit_generator
+ - predictions with dense layer instead of convolution layer
+ - complex bypass instead of simple bypass
+"""
+
 from keras_squeezenet import SqueezeNet
 
-from keras.layers import Dropout, Convolution2D, Dense, GlobalAveragePooling2D
+from keras.layers import Dropout, Convolution2D, Dense, GlobalAveragePooling2D, Activation
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.optimizers import Adam
@@ -11,18 +20,18 @@ from collections import Counter
 
 WIDTH, HEIGHT = (300, 300)
 
-DROPOUT=0.2
-CLASSES=2
+DROPOUT=0.1
+CLASSES=10
 BATCH_SIZE=32
-NUM_EPOCHS=20
-INIT_LR=0.0005
+NUM_EPOCHS=40
+INIT_LR=0.001
 
 PATH = 'animals10/raw-img/'
 
 datagen = ImageDataGenerator(rescale=1./255,
     validation_split=0.1)
 
-train_generator = train_datagen.flow_from_directory(
+train_generator = datagen.flow_from_directory(
     PATH,
     target_size=(HEIGHT, WIDTH),
     color_mode='rgb',
@@ -30,7 +39,7 @@ train_generator = train_datagen.flow_from_directory(
     batch_size=BATCH_SIZE,
     subset='training')
 
-validation_generator = test_datagen.flow_from_directory(
+validation_generator = datagen.flow_from_directory(
     PATH,
     target_size=(HEIGHT, WIDTH),
     color_mode='rgb',
@@ -42,18 +51,18 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-base_model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights="base_model")
+base_model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass='complex')
 x = base_model.output
 
-x = Dropout(DROPOUT, name='drop9')(x)
-x = Convolution2D(CLASSES, (1, 1), padding='valid', name='conv10')(x)
-x = Activation('relu', name='relu_conv10')(x)
-x = GlobalAveragePooling2D()(x)
-predictions = Activation('softmax', name='loss')(x)
+#x = Dropout(DROPOUT, name='drop9')(x)
+#x = Convolution2D(CLASSES, (1, 1), padding='valid', name='conv10')(x)
+#x = Activation('relu', name='relu_conv10')(x)
+#x = GlobalAveragePooling2D()(x)
+#predictions = Activation('softmax', name='loss')(x)
 
-# x = GlobalAveragePooling2D()(x)
-# x = Dropout(DROPOUT, name='drop9')(x)
-# predictions = Dense(CLASSES, activation='softmax')(x)
+x = GlobalAveragePooling2D()(x)
+x = Dropout(DROPOUT, name='drop9')(x)
+predictions = Dense(CLASSES, activation='softmax')(x)
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
@@ -67,7 +76,6 @@ model.fit_generator(
     validation_steps = validation_generator.samples // BATCH_SIZE,
     epochs=NUM_EPOCHS,
     class_weight=class_weights,
-    shuffle=True
 )
 
 #results = model.evaluate_generator(generator=test_generator,
