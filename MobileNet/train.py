@@ -33,6 +33,10 @@ validation_generator = datagen.flow_from_directory(
     batch_size=BATCH_SIZE,
     subset='validation')
 
+counter = Counter(train_generator.classes)
+max_val = float(max(counter.values()))
+class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
+
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
     base_model = MobileNetV2(input_shape=(HEIGHT, WIDTH, 3),
@@ -55,6 +59,7 @@ model.fit(
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE,
     epochs=NUM_EPOCHS,
+    class_weight=class_weights
 )
 
 model.save('model.h5')
