@@ -24,7 +24,7 @@ BATCH_SIZE=32
 NUM_EPOCHS=35
 INIT_LR=0.0005
 
-PATH = 'animals10/raw-img/'
+PATH = '../Data/animals10/raw-img/'
 
 datagen = ImageDataGenerator(rescale=1./255,
     validation_split=0.1)

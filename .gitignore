@@ -1,4 +1,3 @@
-SqueezeNet/animals10
 .DS_Store
 .ipynb_checkpoints
 Caltech*
@@ -8,3 +7,4 @@ data
 SqueezeNet/base_model.h5
 SqueezeNet/__pycache__
 SqueezeNet/sessions
+Data
