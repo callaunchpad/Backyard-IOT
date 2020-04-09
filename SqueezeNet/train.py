@@ -1,15 +1,13 @@
 """
 Changes:
- - doubled learning rate
- - decreased dropout by 1/2
- - took out shuffle parameter in fit_generator
- - predictions with dense layer instead of convolution layer
- - complex bypass instead of simple bypass
+ - Increased learning rate to 0.0005
+ - 35 epochs
+ - Increased dropout to 0.7
 """
 
 from keras_squeezenet import SqueezeNet
 
-from keras.layers import Dropout, Convolution2D, Dense, GlobalAveragePooling2D, Activation
+from keras.layers import Flatten, GlobalAveragePooling2D, Dropout, Convolution2D, Dense, Activation
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.optimizers import Adam
@@ -20,11 +18,11 @@ from collections import Counter
 
 WIDTH, HEIGHT = (300, 300)
 
-DROPOUT=0.1
+DROPOUT=0.7
 CLASSES=10
 BATCH_SIZE=32
-NUM_EPOCHS=40
-INIT_LR=0.001
+NUM_EPOCHS=35
+INIT_LR=0.0005
 
 PATH = 'animals10/raw-img/'
 
