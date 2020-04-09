@@ -8,3 +8,4 @@ SqueezeNet/base_model.h5
 SqueezeNet/__pycache__
 SqueezeNet/sessions
 Data
+MobileNet/sessions
