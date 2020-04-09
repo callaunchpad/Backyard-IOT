@@ -3,7 +3,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import Sequential
 
 PATH = '../Data/animals10/raw-img/'
@@ -44,7 +44,7 @@ with strategy.scope():
     predictions = Dense(CLASSES, activation='softmax')
     model = Sequential([base_model, pool, predictions])
     model.compile(optimizer=RMSprop(lr=INIT_LR),
-                  loss=BinaryCrossentropy(from_logits=True),
+                  loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
                   
 model.summary()
