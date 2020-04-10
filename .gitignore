@@ -9,4 +9,5 @@ MobileNet/sessions
 MobileNet/base_model.h5
 Data/*
 !Data/split_data.py
-
+*/nohup.out
+*/model.h5
