@@ -145,7 +145,7 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-def train(1, learning_rate, epochs, bypass):
+def train(num, learning_rate, epochs, bypass):
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass=bypass)
