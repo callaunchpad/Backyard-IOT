@@ -6,6 +6,10 @@ from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.models import Sequential
 
+from tensorflow.keras.models import load_model
+
+from collections import Counter
+
 PATH = '../Data/animals10/raw-img/'
 
 WIDTH, HEIGHT = (300, 300)
@@ -39,9 +43,7 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    base_model = MobileNetV2(input_shape=(HEIGHT, WIDTH, 3),
-                             include_top=False,
-                             weights='imagenet')
+    base_model = load_model('base_model.h5')
     base_model.trainable = False
 
     pool = GlobalAveragePooling2D()
