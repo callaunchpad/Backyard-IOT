@@ -9,7 +9,7 @@ from tensorflow.keras.models import load_model
 
 from collections import Counter
 
-PATH = '../Data/animals10/raw-img/'
+PATH = '../Data/eccv'
 from collections import Counter
 
 PATH = '../Data/split_eccv/'
@@ -19,8 +19,8 @@ TEST_PATH = PATH + 'test'
 WIDTH, HEIGHT = (300, 300)
 BATCH_SIZE=32
 INIT_LR = 0.0005
-NUM_EPOCHS=15
-CLASSES=10
+NUM_EPOCHS=20
+CLASSES=16
 DROPOUT=0.4
 
 VALIDATION_SPLIT=0.9
@@ -58,14 +58,14 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-<<<<<<< HEAD
     base_model = load_model('base_model.h5')
     base_model.trainable = False
 
-    pool = GlobalAveragePooling2D()
-    dropout = Dropout(DROPOUT)
-    predictions = Dense(CLASSES, activation='softmax')
-    model = Sequential([base_model, pool, dropout, predictions])
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dropout(DROPOUT)(x)
+    predictions = Dense(CLASSES, activation='softmax')(x)
+    model = model = Model(inputs = base_model.input, outputs = predictions)
     model.compile(optimizer=RMSprop(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
@@ -79,7 +79,6 @@ model.fit_generator(
     class_weight=class_weights
 )
 
-model.save('model.h5')
 results = model.evaluate_generator(generator=test_generator, 
     steps=test_generator.samples // BATCH_SIZE)
 

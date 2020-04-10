@@ -4,7 +4,7 @@ from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.losses import BinaryCrossentropy
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Model
 
 from collections import Counter
 
@@ -52,10 +52,11 @@ with strategy.scope():
                              include_top=False,
                              weights='imagenet')
     base_model.trainable = False
-
-    pool = GlobalAveragePooling2D()
-    predictions = Dense(CLASSES, activation='softmax')
-    model = Sequential([base_model, pool, predictions])
+    
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(CLASSES, activation='softmax')(x)
+    model = Model(
     model.compile(optimizer=RMSprop(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
