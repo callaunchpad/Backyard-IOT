@@ -22,6 +22,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from collections import Counter
 
+import numpy as np
+
 import keras.backend as K
 K.set_floatx('float16')
 K.set_epsilon(1e-4) #default is 1e-7
@@ -143,24 +145,27 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-strategy = tf.distribute.MirroredStrategy()
-with strategy.scope():
-    model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass='simple')
-    model.compile(optimizer=RMSprop(lr=INIT_LR),
-                  loss=CategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
+def train(1, learning_rate, epochs, bypass):
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass=bypass)
+        model.compile(optimizer=RMSprop(lr=learning_rate),
+                      loss=CategoricalCrossentropy(from_logits=True),
+                      metrics=['accuracy'])
 
-model.fit(
-    train_generator,
-    steps_per_epoch = train_generator.samples // BATCH_SIZE,
-    validation_data=validation_generator,
-    validation_steps=validation_generator.samples // BATCH_SIZE,
-    epochs=NUM_EPOCHS,
-    class_weight=class_weights
-)
-
-#results = model.evaluate_generator(generator=test_generator,
-#                         steps=test_generator.samples // BATCH_SIZE)
-#print('RESULTS:', {key: val for key, val in zip(model.metrics_names, results)})
+    history = model.fit(
+        train_generator,
+        steps_per_epoch = train_generator.samples // BATCH_SIZE,
+        validation_data=validation_generator,
+        validation_steps=validation_generator.samples // BATCH_SIZE,
+        epochs=epochs,
+        class_weight=class_weights
+    )
     
-model.save('model.h5')
+    np_history = np.array(history)
+    np.savetxt("history{}.txt".format(num), np_history, delimiter=",")
+        
+    model.save('model{}.h5'.format(num))
+
+train(1, 0.04, 35, 'simple')
+train(2, 0.005, 70, 'complex')
