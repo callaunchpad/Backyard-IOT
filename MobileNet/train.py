@@ -13,12 +13,12 @@ PATH = '../Data/split_eccv/'
 TRAIN_PATH = PATH + 'train'
 TEST_PATH = PATH + 'test'
 
-WIDTH, HEIGHT = (800, 500)
-BATCH_SIZE=16
-INIT_LR = 0.0005
+WIDTH, HEIGHT = (500, 500)
+BATCH_SIZE=64
+INIT_LR = 0.0004
 NUM_EPOCHS=50
 CLASSES=16
-DROPOUT=0.4
+DROPOUT=0.5
 
 VALIDATION_SPLIT=0.1
 
@@ -59,15 +59,15 @@ with strategy.scope():
         include_top=False,
         weights=None)
     base_model = load_model('base_model.h5')
-    base_model.trainable = False
+    #base_model.trainable = False
 
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     x = Dropout(DROPOUT)(x)
     predictions = Dense(CLASSES, activation='softmax')(x)
     model = model = Model(inputs = base_model.input, outputs = predictions)
-    model.compile(optimizer=Adam(lr=INIT_LR),
-                  loss=CategoricalCrossentropy(from_logits=True),
+    model.compile(optimizer=SGD(lr=INIT_LR, momentum=0.9, nesterov=True),
+                  loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
 model.fit_generator(
