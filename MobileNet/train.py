@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import RMSprop, Adam
 from tensorflow.keras.losses import  CategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.models import load_model
@@ -16,11 +16,11 @@ TEST_PATH = PATH + 'test'
 WIDTH, HEIGHT = (800, 500)
 BATCH_SIZE=16
 INIT_LR = 0.0005
-NUM_EPOCHS=20
+NUM_EPOCHS=50
 CLASSES=16
 DROPOUT=0.4
 
-VALIDATION_SPLIT=0.9
+VALIDATION_SPLIT=0.1
 
 train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255, validation_split=VALIDATION_SPLIT)
@@ -55,6 +55,9 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
+    base_model = MobileNetV2(input_shape=(HEIGHT, WIDTH, 3),
+        include_top=False,
+        weights=None)
     base_model = load_model('base_model.h5')
     base_model.trainable = False
 
@@ -63,7 +66,7 @@ with strategy.scope():
     x = Dropout(DROPOUT)(x)
     predictions = Dense(CLASSES, activation='softmax')(x)
     model = model = Model(inputs = base_model.input, outputs = predictions)
-    model.compile(optimizer=RMSprop(lr=INIT_LR),
+    model.compile(optimizer=Adam(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
