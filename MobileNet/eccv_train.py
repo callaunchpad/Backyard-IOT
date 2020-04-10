@@ -60,7 +60,7 @@ with strategy.scope():
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
-model.fit(
+model.fit_generator(
     train_generator,
     steps_per_epoch = train_generator.samples // BATCH_SIZE,
     validation_data=validation_generator,

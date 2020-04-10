@@ -52,10 +52,8 @@ with strategy.scope():
     model.compile(optimizer=RMSprop(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
-                  
-model.summary()
 
-model.fit(
+model.fit_generator(
     train_generator,
     steps_per_epoch = train_generator.samples // BATCH_SIZE,
     validation_data=validation_generator,
