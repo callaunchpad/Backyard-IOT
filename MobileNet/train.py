@@ -1,41 +1,56 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.losses import  CategoricalCrossentropy
 from tensorflow.keras.models import Sequential
-
 from tensorflow.keras.models import load_model
 
 from collections import Counter
 
 PATH = '../Data/animals10/raw-img/'
+from collections import Counter
+
+PATH = '../Data/split_eccv/'
+TRAIN_PATH = PATH + 'train'
+TEST_PATH = PATH + 'test'
 
 WIDTH, HEIGHT = (300, 300)
 BATCH_SIZE=32
-INIT_LR = 0.001
-NUM_EPOCHS=10
+INIT_LR = 0.0005
+NUM_EPOCHS=15
 CLASSES=10
+DROPOUT=0.4
 
-datagen = ImageDataGenerator(rescale=1./255,
-    validation_split=0.1)
+VALIDATION_SPLIT=0.9
 
-train_generator = datagen.flow_from_directory(
-    PATH,
+train_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255, validation_split=VALIDATION_SPLIT)
+
+train_generator = train_datagen.flow_from_directory(
+    TRAIN_PATH,
+    target_size=(HEIGHT, WIDTH),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=BATCH_SIZE)
+
+validation_generator = test_datagen.flow_from_directory(
+    TEST_PATH,
+    target_size=(HEIGHT, WIDTH),
+    color_mode='rgb',
+    class_mode='categorical',
+    batch_size=BATCH_SIZE,
+    subset='validation')
+
+test_generator = test_datagen.flow_from_directory(
+    TEST_PATH,
     target_size=(HEIGHT, WIDTH),
     color_mode='rgb',
     class_mode='categorical',
     batch_size=BATCH_SIZE,
     subset='training')
 
-validation_generator = datagen.flow_from_directory(
-    PATH,
-    target_size=(HEIGHT, WIDTH),
-    color_mode='rgb',
-    class_mode='categorical',
-    batch_size=BATCH_SIZE,
-    subset='validation')
 
 counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))
@@ -43,12 +58,14 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
+<<<<<<< HEAD
     base_model = load_model('base_model.h5')
     base_model.trainable = False
 
     pool = GlobalAveragePooling2D()
+    dropout = Dropout(DROPOUT)
     predictions = Dense(CLASSES, activation='softmax')
-    model = Sequential([base_model, pool, predictions])
+    model = Sequential([base_model, pool, dropout, predictions])
     model.compile(optimizer=RMSprop(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
@@ -61,5 +78,11 @@ model.fit_generator(
     epochs=NUM_EPOCHS,
     class_weight=class_weights
 )
+
+model.save('model.h5')
+results = model.evaluate_generator(generator=test_generator, 
+    steps=test_generator.samples // BATCH_SIZE)
+
+print('RESULTS:', {key:val for key, val in zip(model.metrics_names, results)})
 
 model.save('model.h5')
