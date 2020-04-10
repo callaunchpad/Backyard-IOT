@@ -4,7 +4,7 @@ from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.losses import  CategoricalCrossentropy
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Model
 from tensorflow.keras.models import load_model
 
 from collections import Counter
@@ -15,8 +15,8 @@ PATH = '../Data/split_eccv/'
 TRAIN_PATH = PATH + 'train'
 TEST_PATH = PATH + 'test'
 
-WIDTH, HEIGHT = (300, 300)
-BATCH_SIZE=32
+WIDTH, HEIGHT = (800, 500)
+BATCH_SIZE=16
 INIT_LR = 0.0005
 NUM_EPOCHS=20
 CLASSES=16
