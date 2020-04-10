@@ -9,7 +9,6 @@ from tensorflow.keras.models import load_model
 
 from collections import Counter
 
-PATH = '../Data/eccv'
 from collections import Counter
 
 PATH = '../Data/split_eccv/'
