@@ -2,7 +2,7 @@ WIDTH, HEIGHT = (300, 300)
 
 DROPOUT=0.5
 CLASSES=10
-INIT_LR=0.04
+INIT_LR=0.001
 
 BATCH_SIZE=16
 NUM_EPOCHS=35
@@ -12,8 +12,7 @@ PATH = '../Data/animals10/raw-img/'
 import tensorflow as tf
 
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Convolution2D, Activation, MaxPooling2D, \
-    GlobalAveragePooling2D, Dropout, Dense, concatenate, add
+from tensorflow.keras.layers import Input, Convolution2D, Activation, MaxPooling2D, GlobalAveragePooling2D, Dropout, Dense, concatenate, add
 from tensorflow.keras.utils import get_file
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.losses import CategoricalCrossentropy
@@ -21,8 +20,6 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from collections import Counter
-
-import numpy as np
 
 import keras.backend as K
 K.set_floatx('float16')
@@ -109,7 +106,7 @@ def SqueezeNet(input_shape, weights=None, bypass=None):
     if simple:
         x = simple_add(s, x)
         
-    x = Dropout(DROPOUT, name='drop9')(x)
+    #x = Dropout(DROPOUT, name='drop9')(x)
     
     x = Convolution2D(CLASSES, 1, strides=1, name='conv10')(x)
     x = GlobalAveragePooling2D()(x)
@@ -145,27 +142,20 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-def train(num, learning_rate, epochs, bypass):
-    strategy = tf.distribute.MirroredStrategy()
-    with strategy.scope():
-        model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass=bypass)
-        model.compile(optimizer=RMSprop(lr=learning_rate),
-                      loss=CategoricalCrossentropy(from_logits=True),
-                      metrics=['accuracy'])
+strategy = tf.distribute.MirroredStrategy()
+with strategy.scope():
+    model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass='simple')
+    model.compile(optimizer=RMSprop(lr=INIT_LR),
+                  loss=CategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
 
-    history = model.fit(
-        train_generator,
-        steps_per_epoch = train_generator.samples // BATCH_SIZE,
-        validation_data=validation_generator,
-        validation_steps=validation_generator.samples // BATCH_SIZE,
-        epochs=epochs,
-        class_weight=class_weights
-    )
+history = model.fit(
+    train_generator,
+    steps_per_epoch = train_generator.samples // BATCH_SIZE,
+    validation_data=validation_generator,
+    validation_steps=validation_generator.samples // BATCH_SIZE,
+    epochs=NUM_EPOCHS,
+    class_weight=class_weights
+)
     
-    np_history = np.array(history)
-    np.savetxt("history{}.txt".format(num), np_history, delimiter=",")
-        
-    model.save('model{}.h5'.format(num))
-
-train(1, 0.04, 35, 'simple')
-train(2, 0.005, 70, 'complex')
+model.save('model.h5')
