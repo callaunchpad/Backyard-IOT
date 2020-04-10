@@ -9,8 +9,6 @@ from tensorflow.keras.models import load_model
 
 from collections import Counter
 
-from collections import Counter
-
 PATH = '../Data/split_eccv/'
 TRAIN_PATH = PATH + 'train'
 TEST_PATH = PATH + 'test'
