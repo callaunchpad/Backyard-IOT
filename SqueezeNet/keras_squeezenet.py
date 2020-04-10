@@ -35,7 +35,6 @@ def complex_add(complex_id, from_layer, to_layer):
     from_layer = Activation('relu', name='relu_' + complex_id)(from_layer)
     return simple_add(from_layer, to_layer)
 
-
 """
 Note: the simple and complex bypass connections feed into each other unless separated by a pooling layer.
 """
