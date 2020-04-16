@@ -14,16 +14,16 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Convolution2D, Activation, MaxPooling2D, GlobalAveragePooling2D, Dropout, Dense, concatenate, add
 from tensorflow.keras.utils import get_file
-from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.losses import CategoricalCrossentropy
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from collections import Counter
 
-import keras.backend as K
-K.set_floatx('float16')
-K.set_epsilon(1e-4) #default is 1e-7
+#import keras.backend as K
+#K.set_floatx('float16')
+#K.set_epsilon(1e-4) #default is 1e-7
 
 def fire_module(x, fire_id, squeeze=16, expand=64):
     fire_id = 'fire' + str(fire_id) + '/'
@@ -108,8 +108,9 @@ def SqueezeNet(input_shape, weights=None, bypass=None):
         
     #x = Dropout(DROPOUT, name='drop9')(x)
     
-    x = Convolution2D(CLASSES, 1, strides=1, name='conv10')(x)
+    #x = Convolution2D(CLASSES, 1, strides=1, name='conv10')(x)
     x = GlobalAveragePooling2D()(x)
+    x = Dense(CLASSES)(x)
     predictions = Activation('softmax', name='predictions')(x)
     
     model = Model(inputs, predictions, name='squeezenet')
@@ -145,7 +146,7 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
     model = SqueezeNet(input_shape=(HEIGHT, WIDTH, 3), weights=None, bypass='simple')
-    model.compile(optimizer=RMSprop(lr=INIT_LR),
+    model.compile(optimizer=Adam(lr=INIT_LR),
                   loss=CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 

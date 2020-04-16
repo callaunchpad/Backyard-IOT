@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D
-from tensorflow.keras.optimizers import RMSprop, Adam
+from tensorflow.keras.layers import Flatten, Dense, Dropout, GlobalAveragePooling2D
+from tensorflow.keras.optimizers import RMSprop, Adam, SGD
 from tensorflow.keras.losses import  CategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.models import load_model
@@ -14,7 +14,7 @@ TRAIN_PATH = PATH + 'train'
 TEST_PATH = PATH + 'test'
 
 WIDTH, HEIGHT = (500, 500)
-BATCH_SIZE=64
+BATCH_SIZE=16
 INIT_LR = 0.0004
 NUM_EPOCHS=50
 CLASSES=16
@@ -58,11 +58,11 @@ with strategy.scope():
     base_model = MobileNetV2(input_shape=(HEIGHT, WIDTH, 3),
         include_top=False,
         weights=None)
-    base_model = load_model('base_model.h5')
+    #base_model = load_model('base_model.h5')
     #base_model.trainable = False
 
     x = base_model.output
-    x = GlobalAveragePooling2D()(x)
+    x = Flatten()(x)
     x = Dropout(DROPOUT)(x)
     predictions = Dense(CLASSES, activation='softmax')(x)
     model = model = Model(inputs = base_model.input, outputs = predictions)
