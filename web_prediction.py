@@ -4,7 +4,6 @@ from time import sleep
 from camera import Camera
 
 app = Flask(__name__)
-
 @app.route("/")
 def index():
 	return render_template("wildlifeIndex.html")
