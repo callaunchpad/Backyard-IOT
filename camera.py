@@ -7,10 +7,10 @@ import time
 global sess, graph
 sess = tf.InteractiveSession()
 graph = tf.get_default_graph()
-TFLITE = True
+TFLITE = False
 #changed kereas.models to tensorflow.keras.models for mobilenet
 if not TFLITE:
-  model = tf.keras.models.load_model('squeeze.h5', custom_objects = None, compile=True)
+  model = tf.keras.models.load_model('mobilenetv2.h5', custom_objects = None, compile=True)
 else:
   tflite_model = tf.lite.Interpreter('simple_fp16.tflite')
   tflite_model.allocate_tensors()
