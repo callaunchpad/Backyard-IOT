@@ -11,3 +11,4 @@ Data/*
 !Data/split_data.py
 */nohup.out
 */model.h5
+SqueezeNet/testing
