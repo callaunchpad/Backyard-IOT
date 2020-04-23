@@ -41,5 +41,14 @@ with strategy.scope():
     model.compile(optimizer=Adam(learning_rate=0.001),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
-    
+
+history = model.fit(
+    train_generator,
+    steps_per_epoch = train_generator.samples // BATCH_SIZE,
+    validation_data=validation_generator,
+    validation_steps=validation_generator.samples // BATCH_SIZE,
+    epochs=NUM_EPOCHS,
+    class_weight=class_weights
+)
+
 model.save('model.h5')
