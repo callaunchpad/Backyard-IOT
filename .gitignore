@@ -3,7 +3,6 @@
 Caltech*
 old
 SqueezeNet/base_model.h5
-SqueezeNet/__pycache__
 SqueezeNet/sessions
 MobileNet/sessions
 MobileNet/base_model.h5
@@ -12,3 +11,4 @@ Data/*
 */nohup.out
 */model.h5
 SqueezeNet/testing
+*/__pycache__
