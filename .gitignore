@@ -2,13 +2,11 @@
 .ipynb_checkpoints
 Caltech*
 old
-SqueezeNet/base_model.h5
-SqueezeNet/__pycache__
-SqueezeNet/sessions
-MobileNet/sessions
-MobileNet/base_model.h5
 Data/*
 !Data/split_data.py
 */nohup.out
 */model.h5
+*/base_model.h5
 SqueezeNet/testing
+*/__pycache__
+*/sessions
