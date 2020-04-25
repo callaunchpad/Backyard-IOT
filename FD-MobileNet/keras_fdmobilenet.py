@@ -1,7 +1,7 @@
-from tensorflow.keras.layers import Input, Dense, Dropout, ReLU, Conv2D, SeparableConv2D, BatchNormalization, GlobalAveragePooling2D
+from tensorflow.keras.layers import Input, Dense, ReLU, Conv2D, SeparableConv2D, BatchNormalization, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
-def FDMobileNet(input_shape=(224, 224, 3), classes=10, dropout=0.5, alpha=1):
+def FDMobileNet(input_shape=(224, 224, 3), classes=10, alpha=1):
     
     
     """Helpful custom keras blocks"""
@@ -37,7 +37,6 @@ def FDMobileNet(input_shape=(224, 224, 3), classes=10, dropout=0.5, alpha=1):
     x = SeparableBlock(filters=1024)(x)
     
     x = GlobalAveragePooling2D()(x)
-    x = Dropout(dropout)
     x = Dense(classes, activation='softmax')(x)
     
     model = Model(inputs, x, name='FD-MobileNet')

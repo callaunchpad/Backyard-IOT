@@ -1,3 +1,8 @@
+"""
+ - removed dropout
+ - decreased learning rate by 1/10
+"""
+
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
@@ -6,7 +11,7 @@ from collections import Counter
 
 BATCH_SIZE=256
 NUM_EPOCHS=30
-INIT_LR=0.001
+INIT_LR=0.0001
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
@@ -38,7 +43,7 @@ class_weights = {class_id : max_val/num_images for class_id, num_images in count
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
     model = FDMobileNet()
-    model.compile(optimizer=Adam(learning_rate=0.001),
+    model.compile(optimizer=Adam(learning_rate=INIT_LR),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
