@@ -7,13 +7,14 @@ import threading
 app = Flask(__name__)
 @app.route("/")
 def index():
-	return render_template("wildlifeIndex.html")
+    return render_template("wildlifeIndex.html")
 #global queue = []
 global ret_frame
 def predict(camera):
     global ret_frame
+    global time
     while True:
-        frame = camera.predict()
+        frame, time = camera.predict()
         ret_frame = frame
         #queue.appen(frame)
 
@@ -24,14 +25,26 @@ def predict(camera):
 
 def generate():
     global ret_frame
+    counter = 0
+    total = 0
     while True:
         frame = ret_frame #gen_frame()
-        yield (b'--frame\r\n'+ b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        newTime = time
+        if counter > 49:
+            total += newTime
+        counter += 1
+        #yield (b'--frame\r\n'+ b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        frame = str.encode(frame)
+        yield(frame)
+        if counter == 100:
+            print("==============================" + "\n")
+            print(total/50)
+            print("==============================" + "\n")
 
 @app.route("/video_feed")
 def image_feed():
-	return Response(generate(),
-		mimetype = "multipart/x-mixed-replace; boundary=frame")
+    return Response(generate(),
+        mimetype = "multipart/x-mixed-replace; boundary=frame")
 
 if __name__ == "__main__":
     camera = Camera()
