@@ -1,16 +1,16 @@
 import requests
 import time
 
-URL = "http://0.0.0.0:5000/animals"
+URL = "http://192.168.1.108:5000/animals"
 while(True):
     try:
         response = requests.get(URL)
         if response:
             print('Success!')
             response_dict = response.json()
-            print("Inference Time:", response_dict["inference time"])
+            print("Inference Time:", response_dict["inference time"], "seconds")
             for i in response_dict["results"].keys():
-                print(str(i) + ": " + str(response_dict[i]))
+                print(str(i) + ": " + str(response_dict["results"][i]))
             print()
             time.sleep(1)
         else:
