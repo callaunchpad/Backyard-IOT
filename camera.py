@@ -10,7 +10,7 @@ graph = tf.get_default_graph()
 TFLITE = False
 #changed kereas.models to tensorflow.keras.models for mobilenet
 if not TFLITE:
-  model = tf.keras.models.load_model('mobilenetv2.h5', custom_objects = None, compile=True)
+  model = tf.keras.models.load_model('model.h5', custom_objects = None, compile=True)
 else:
   tflite_model = tf.lite.Interpreter('simple_fp16.tflite')
   tflite_model.allocate_tensors()
@@ -41,7 +41,7 @@ class Camera(object):
         now = time.time()
         print('new loop', 0)
         ret, cap = self.capture.read()
-        image = cv2.resize(cap, (300, 300))
+        image = cv2.resize(cap, (224, 224))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = np.expand_dims(image, axis=0)
         image = image/255

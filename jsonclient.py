@@ -1,7 +1,7 @@
 import requests
 import time
 
-URL = "http://0.0.0.0:5000"
+URL = "http://0.0.0.0:5000/animals"
 while(True):
     try:
         response = requests.get(URL)
@@ -10,7 +10,7 @@ while(True):
             response_dict = response.json()
             print("Responses:")
             for i in response_dict.keys():
-                print("%s: %s", i, response_dict[i])
+                print(str(i) + ": " + str(response_dict[i]))
             print()
             time.sleep(1)
         else:
