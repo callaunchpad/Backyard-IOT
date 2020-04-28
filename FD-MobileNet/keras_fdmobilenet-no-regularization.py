@@ -1,20 +1,14 @@
 from tensorflow.keras.layers import Input, Dense, ReLU, Conv2D, SeparableConv2D, BatchNormalization, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
-import tensorflow.keras.regularizers as reg
 
-def FDMobileNet(input_shape=(224, 224, 3), classes=10, alpha=1, l2=4e-5):
-    
-    """Regularization (weight decay)"""
-    
-    l2 = reg.l2(l2)
+def FDMobileNet(input_shape=(224, 224, 3), classes=10, alpha=1):
     
     
     """Helpful custom keras blocks"""
     
     def ConvBlock(layer, filters, kernel_size=3, strides=1, **kwargs):
         def block(x):
-            x = layer(filters, kernel_size, strides, padding='same', use_bias=False, 
-                      kernel_regularizer=l2, **kwargs)(x)
+            x = layer(filters, kernel_size, strides, padding='same', use_bias=False, **kwargs)(x)
             x = BatchNormalization()(x)
             x = ReLU()(x)
             return x
@@ -43,7 +37,7 @@ def FDMobileNet(input_shape=(224, 224, 3), classes=10, alpha=1, l2=4e-5):
     x = SeparableBlock(filters=1024)(x)
     
     x = GlobalAveragePooling2D()(x)
-    x = Dense(classes, activation='softmax', kernel_regularizer=l2)(x)
+    x = Dense(classes, activation='softmax')(x)
     
     model = Model(inputs, x, name='FD-MobileNet')
     
