@@ -83,9 +83,10 @@ class Camera(object):
         #print('finished', totalTime)
         #return jpeg.tobytes(), totalTime
         totalTime = time.time() - now
-        res = {}
+        res = {"results": {}}
+        res["inference time"] = now3 - now2
         for i in range(convert.size):
-            res[convert[i]] = str(guess[0][i])
+            res["results"][convert[i]] = str(guess[0][i])
         print(res)
         return res, totalTime
 

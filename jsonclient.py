@@ -8,8 +8,8 @@ while(True):
         if response:
             print('Success!')
             response_dict = response.json()
-            print("Responses:")
-            for i in response_dict.keys():
+            print("Inference Time:", response_dict["inference time"])
+            for i in response_dict["results"].keys():
                 print(str(i) + ": " + str(response_dict[i]))
             print()
             time.sleep(1)
