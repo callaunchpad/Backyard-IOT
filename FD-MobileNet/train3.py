@@ -11,12 +11,14 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import SGD
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
+import pickle
+from prettytable import PrettyTable
 
-BATCH_SIZE=256
-NUM_EPOCHS=30
-INIT_LR=0.1
-STEP=10
-RATE=0.01
+BATCH_SIZE=32
+NUM_EPOCHS=32
+INIT_LR=1e-4
+STEP=8
+RATE=0.9
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
@@ -49,24 +51,39 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
-#Multiplies INIT_LR by RATE every STEP epochs
-scheduler = lambda epoch: INIT_LR * (epoch // STEP) * RATE
+#Multiplies learning rate by RATE every STEP epochs, starting at INIT_LR
+scheduler = lambda epoch: INIT_LR * (RATE ** (epoch // STEP))
 callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
 
 strategy = tf.distribute.MirroredStrategy()
-with strategy.scope():
-    model = FDMobileNet()
-    model.compile(optimizer=SGD(learning_rate=0.0, momentum=0.9, nesterov=True),
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
 
-history = model.fit(
-    train_generator,
-    steps_per_epoch = train_generator.samples // BATCH_SIZE,
-    validation_data=validation_generator,
-    validation_steps=validation_generator.samples // BATCH_SIZE,
-    epochs=NUM_EPOCHS,
-    class_weight=class_weights, callbacks=[callback]
-)
+def train_and_save(alpha):
+    with strategy.scope():
+        model = FDMobileNet(alpha=alpha)
+        model.compile(optimizer=SGD(learning_rate=0.0, momentum=0.9, nesterov=True),
+                      loss='categorical_crossentropy',
+                      metrics=['accuracy'])
 
-model.save('model.h5')
+    history = model.fit(
+        train_generator,
+        steps_per_epoch = train_generator.samples // BATCH_SIZE,
+        validation_data=validation_generator,
+        validation_steps=validation_generator.samples // BATCH_SIZE,
+        epochs=NUM_EPOCHS,
+        class_weight=class_weights, callbacks=[callback]
+    )
+
+    model.save('fdmobilenet_{}x.h5'.format(alpha))
+    with open('history_{}x.pkl'.format(alpha), 'wb') as f:
+        pickle.dump(history.history, f)
+        
+    headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
+    table = PrettyTable(headers)
+    for i in range(NUM_EPOCHS):
+        table.add_row([i+1] + [hist[header][i] for header in headers[1:]])
+    with open('history_{}.txt'.format(alpha), 'wb') as f:
+        pickle.dump(str(table), f)
+
+train_and_save(1)
+train_and_save(0.5)
+train_and_save(0.25)
