@@ -7,9 +7,9 @@ import os
 import pickle
 from prettytable import PrettyTable
 
-BATCH_SIZE=32
+BATCH_SIZE=16
 NUM_EPOCHS=12
-INIT_LR=1e-4
+INIT_LR=1e-5
 STEP=2
 RATE=0.9
 
