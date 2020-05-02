@@ -1,16 +1,17 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import Adam
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
+import os
 import pickle
 from prettytable import PrettyTable
 
-BATCH_SIZE=16
-NUM_EPOCHS=32
-INIT_LR=5e-5
-STEP=8
-RATE=0.5
+BATCH_SIZE=32
+NUM_EPOCHS=12
+INIT_LR=1e-4
+STEP=2
+RATE=0.9
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
@@ -52,7 +53,7 @@ strategy = tf.distribute.MirroredStrategy()
 def train_and_save(alpha):
     with strategy.scope():
         model = FDMobileNet(alpha=alpha)
-        model.compile(optimizer=SGD(learning_rate=0.0, momentum=0.9, nesterov=True),
+        model.compile(optimizer=Adam(learning_rate=0.0),
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
@@ -65,15 +66,19 @@ def train_and_save(alpha):
         class_weight=class_weights, callbacks=[callback]
     )
 
-    model.save('fdmobilenet_{}x.h5'.format(alpha))
-    with open('history_{}x.pkl'.format(alpha), 'wb') as f:
+    RESULTS='results'
+    if not os.path.exists(RESULTS):
+        os.mkdir(RESULTS)
+
+    model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
+    with open(os.path.join(RESULTS, 'history_{}x.pkl'.format(alpha)), 'wb') as f:
         pickle.dump(history.history, f)
         
     headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
     table = PrettyTable(headers)
     for i in range(NUM_EPOCHS):
         table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
-    with open('history_{}.txt'.format(alpha), 'wb') as f:
+    with open(os.path.join(RESULTS, 'table_{}.txt'.format(alpha)), 'wb') as f:
         pickle.dump(str(table), f)
 
 train_and_save(1)
