@@ -1,11 +1,3 @@
-"""
- - Changed optimizer to SGD with nesterov momentum 0.9
- - Set init_lr to 0.01
- - Created step weight decay by 0.1 every 10 epochs
- - Added l2 regularization of 4e-5 to each layer in keras_fdmobilenet
- 
-"""
-
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import SGD
@@ -14,11 +6,11 @@ from collections import Counter
 import pickle
 from prettytable import PrettyTable
 
-BATCH_SIZE=32
+BATCH_SIZE=16
 NUM_EPOCHS=32
-INIT_LR=1e-4
+INIT_LR=5e-5
 STEP=8
-RATE=0.9
+RATE=0.5
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
@@ -80,7 +72,7 @@ def train_and_save(alpha):
     headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
     table = PrettyTable(headers)
     for i in range(NUM_EPOCHS):
-        table.add_row([i+1] + [hist[header][i] for header in headers[1:]])
+        table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
     with open('history_{}.txt'.format(alpha), 'wb') as f:
         pickle.dump(str(table), f)
 
