@@ -78,7 +78,7 @@ def train_and_save(alpha):
     table = PrettyTable(headers)
     for i in range(NUM_EPOCHS):
         table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
-    with open(os.path.join(RESULTS, 'table_{}.txt'.format(alpha)), 'wb') as f:
+    with open(os.path.join(RESULTS, 'table_{}x.txt'.format(alpha)), 'wb') as f:
         pickle.dump(str(table), f)
 
 train_and_save(1)
