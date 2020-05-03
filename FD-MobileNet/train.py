@@ -9,9 +9,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 
-BATCH_SIZE=128
-NUM_EPOCHS=1
-INIT_LR=1e-4
+BATCH_SIZE=256
+NUM_EPOCHS=50
+INIT_LR=1e-5
 STEP=10
 RATE=0.8
 
@@ -23,10 +23,11 @@ WIDTH, HEIGHT = (512, 374)
 df = pd.read_csv(LABELS)
 CLASSES=len(df.label.unique())
 
+df, discard = train_test_split(df, train_size=0.2)
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
 
-del df
+del df, discard
 
 
 train_datagen = ImageDataGenerator(
