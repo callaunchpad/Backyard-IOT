@@ -18,7 +18,7 @@ RATE=0.8
 
 IMAGES = '../Data/iwildcam/images'
 LABELS = '../Data/iwildcam/labels.csv'
-WIDTH, HEIGHT = (512, 374)
+WIDTH, HEIGHT = (256, 187)
 
 
 RESULTS='results'
@@ -31,9 +31,9 @@ CLASSES=list(df.label.unique())
 df, discard = train_test_split(df, train_size=0.2)
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
-train_df.to_csv(os.join(RESULTS, 'train.csv', index=False)
-val_df.to_csv(os.join(RESULTS, 'val.csv', index=False)
-test_df.to_csv(os.join(RESULTS, 'test.csv', index=False)
+train_df.to_csv(os.path.join(RESULTS, 'train.csv'), index=False)
+val_df.to_csv(os.path.join(RESULTS, 'val.csv'), index=False)
+test_df.to_csv(os.path.join(RESULTS, 'test.csv'), index=False)
 
 del df, discard
 
