@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
 import os
@@ -21,11 +22,12 @@ WIDTH, HEIGHT = (256, 187)
 
 
 df = pd.read_csv(LABELS)
-CLASSES=len(df.label.unique())
+CLASSES=list(df.label.unique())
 
 df, discard = train_test_split(df, train_size=0.2)
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
+train_df.
 
 del df, discard
 
@@ -40,6 +42,7 @@ test_datagen = ImageDataGenerator(
     rescale=1/.255)
 
 train_generator = train_datagen.flow_from_dataframe(
+    classes=CLASSES,
     dataframe=train_df,
     directory=IMAGES,
     target_size=(HEIGHT, WIDTH),
@@ -51,6 +54,7 @@ train_generator = train_datagen.flow_from_dataframe(
 )
 
 test_generator = test_datagen.flow_from_dataframe(
+    classes=CLASSES,
     dataframe=test_df,
     directory=IMAGES,
     target_size=(HEIGHT, WIDTH),
@@ -62,6 +66,7 @@ test_generator = test_datagen.flow_from_dataframe(
 )
 
 val_generator = test_datagen.flow_from_dataframe(
+    classes=CLASSES,
     dataframe=val_df,
     directory=IMAGES,
     target_size=(HEIGHT, WIDTH),
@@ -78,15 +83,19 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
+callbacks = []
+
 #Multiplies learning rate by RATE every STEP epochs, starting at INIT_LR
 scheduler = lambda epoch: INIT_LR * (RATE ** (epoch // STEP))
-callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
+callbacks.append(tf.keras.callbacks.LearningRateScheduler(scheduler))
 
+#checkpoint
+callbacks.append(ModelCheckpoint("checkpoint.h5", monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'))
 
 strategy = tf.distribute.MirroredStrategy()
 def train_and_save(alpha):
     with strategy.scope():
-        model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=CLASSES, alpha=alpha)
+        model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=alpha)
         model.compile(optimizer=Adam(learning_rate=0.0),
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
@@ -97,7 +106,7 @@ def train_and_save(alpha):
         validation_data=val_generator,
         validation_steps=val_generator.samples // BATCH_SIZE,
         epochs=NUM_EPOCHS,
-        class_weight=class_weights, callbacks=[callback]
+        class_weight=class_weights, callbacks=callbacks
     )
     
     model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
