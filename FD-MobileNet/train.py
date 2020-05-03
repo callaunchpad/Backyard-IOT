@@ -100,6 +100,8 @@ def train_and_save(alpha):
         class_weight=class_weights, callbacks=[callback]
     )
     
+    model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
+    
     evaluation = model.evaluate(
         test_generator,
         steps = test_generator.samples // BATCH_SIZE
@@ -109,7 +111,6 @@ def train_and_save(alpha):
     if not os.path.exists(RESULTS):
         os.mkdir(RESULTS)
 
-    model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
     with open(os.path.join(RESULTS, 'history_{}x.pkl'.format(alpha)), 'wb') as f:
         pickle.dump(history.history, f)
         
