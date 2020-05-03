@@ -2,7 +2,7 @@ from tensorflow.keras.layers import Input, Dense, ReLU, Conv2D, SeparableConv2D,
 from tensorflow.keras.models import Model
 import tensorflow.keras.regularizers as reg
 
-def FDMobileNet(input_shape=(224, 224, 3), classes=10, alpha=1, l2=4e-5):
+def FDMobileNet(input_shape, classes, alpha=1, l2=4e-5):
     
     """Regularization (weight decay)"""
     

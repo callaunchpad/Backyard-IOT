@@ -23,8 +23,6 @@ WIDTH, HEIGHT = (512, 374)
 df = pd.read_csv(LABELS)
 CLASSES=len(df.label.unique())
 
-print('CLASSES', CLASSES)
-
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
 
@@ -87,7 +85,7 @@ callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
 strategy = tf.distribute.MirroredStrategy()
 def train_and_save(alpha):
     with strategy.scope():
-        model = FDMobileNet(alpha=alpha)
+        model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=CLASSES, alpha=alpha)
         model.compile(optimizer=Adam(learning_rate=0.0),
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
