@@ -23,6 +23,8 @@ WIDTH, HEIGHT = (512, 374)
 df = pd.read_csv(LABELS)
 CLASSES=len(df.label.unique())
 
+print('CLASSES', CLASSES)
+
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
 
