@@ -12,7 +12,7 @@ from prettytable import PrettyTable
 
 BATCH_SIZE=256
 NUM_EPOCHS=50
-INIT_LR=1e-5
+INIT_LR=1e-4
 STEP=10
 RATE=0.8
 
@@ -96,44 +96,40 @@ scheduler = lambda epoch: INIT_LR * (RATE ** (epoch // STEP))
 callbacks.append(tf.keras.callbacks.LearningRateScheduler(scheduler))
 
 #checkpoint
-callbacks.append(ModelCheckpoint("checkpoint.h5", monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'))
+callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'))
 
 strategy = tf.distribute.MirroredStrategy()
-def train_and_save(alpha):
-    with strategy.scope():
-        model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=alpha)
-        model.compile(optimizer=Adam(learning_rate=0.0),
-                      loss='categorical_crossentropy',
-                      metrics=['accuracy'])
+with strategy.scope():
+    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=1)
+    model.compile(optimizer=Adam(learning_rate=0.0),
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
 
-    history = model.fit(
-        train_generator,
-        steps_per_epoch = train_generator.samples // BATCH_SIZE,
-        validation_data=val_generator,
-        validation_steps=val_generator.samples // BATCH_SIZE,
-        epochs=NUM_EPOCHS,
-        class_weight=class_weights, callbacks=callbacks
-    )
+history = model.fit(
+    train_generator,
+    steps_per_epoch = train_generator.samples // BATCH_SIZE,
+    validation_data=val_generator,
+    validation_steps=val_generator.samples // BATCH_SIZE,
+    epochs=NUM_EPOCHS,
+    class_weight=class_weights, callbacks=callbacks
+)
+
+model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
+
+evaluation = model.evaluate(
+    test_generator,
+    steps = test_generator.samples // BATCH_SIZE
+)
+
+with open(os.path.join(RESULTS, 'history_{}x.pkl'.format(alpha)), 'wb') as f:
+    pickle.dump(history.history, f)
     
-    model.save(os.path.join(RESULTS, 'fdmobilenet_{}x.h5'.format(alpha)))
-    
-    evaluation = model.evaluate(
-        test_generator,
-        steps = test_generator.samples // BATCH_SIZE
-    )
-
-    with open(os.path.join(RESULTS, 'history_{}x.pkl'.format(alpha)), 'wb') as f:
-        pickle.dump(history.history, f)
-        
-    headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
-    table = PrettyTable(headers)
-    for i in range(NUM_EPOCHS):
-        table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
-    with open(os.path.join(RESULTS, 'table_{}x.txt'.format(alpha)), 'w') as f:
-        f.write(str(table))
-        f.write('\n\nTest Results:')
-        f.write('loss:', evaluation[0])
-        f.write('accuracy:', evaluation[1])
-
-
-train_and_save(1)
+headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
+table = PrettyTable(headers)
+for i in range(NUM_EPOCHS):
+    table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
+with open(os.path.join(RESULTS, 'table_{}x.txt'.format(alpha)), 'w') as f:
+    f.write(str(table))
+    f.write('\n\nTest Results:')
+    f.write('loss:', evaluation[0])
+    f.write('accuracy:', evaluation[1])
