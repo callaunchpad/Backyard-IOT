@@ -21,13 +21,19 @@ LABELS = '../Data/iwildcam/labels.csv'
 WIDTH, HEIGHT = (512, 374)
 
 
+RESULTS='results'
+if not os.path.exists(RESULTS):
+    os.mkdir(RESULTS)
+
 df = pd.read_csv(LABELS)
 CLASSES=list(df.label.unique())
 
 df, discard = train_test_split(df, train_size=0.2)
 train_df, test_df = train_test_split(df, test_size=0.1)
 train_df, val_df = train_test_split(train_df, test_size=0.1)
-train_df.
+train_df.to_csv(os.join(RESULTS, 'train.csv', index=False)
+val_df.to_csv(os.join(RESULTS, 'val.csv', index=False)
+test_df.to_csv(os.join(RESULTS, 'test.csv', index=False)
 
 del df, discard
 
@@ -115,10 +121,6 @@ def train_and_save(alpha):
         test_generator,
         steps = test_generator.samples // BATCH_SIZE
     )
-
-    RESULTS='results'
-    if not os.path.exists(RESULTS):
-        os.mkdir(RESULTS)
 
     with open(os.path.join(RESULTS, 'history_{}x.pkl'.format(alpha)), 'wb') as f:
         pickle.dump(history.history, f)
