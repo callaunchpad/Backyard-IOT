@@ -17,7 +17,7 @@ RATE=0.8
 
 IMAGES = '../Data/iwildcam/images'
 LABELS = '../Data/iwildcam/labels.csv'
-WIDTH, HEIGHT = (512, 374)
+WIDTH, HEIGHT = (256, 187)
 
 
 df = pd.read_csv(LABELS)
