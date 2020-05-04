@@ -28,11 +28,11 @@ if not os.path.exists(RESULTS):
 df = pd.read_csv(LABELS)
 CLASSES=list(df.label.unique())
 
-train_df, val_df = train_test_split(train_df, test_size=0.1)
+train_df, val_df = train_test_split(df, test_size=0.1)
 train_df.to_csv(os.path.join(RESULTS, 'train.csv'), index=False)
 val_df.to_csv(os.path.join(RESULTS, 'val.csv'), index=False)
 
-del df, discard
+del df
 
 datagen = ImageDataGenerator(
     rescale=1/.255)
