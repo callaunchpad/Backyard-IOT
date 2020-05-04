@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
+from keras.models import load_model
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
 import os
@@ -11,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 
 BATCH_SIZE=256
-NUM_EPOCHS=50
+NUM_EPOCHS=20
 INIT_LR=1e-5
 STEP=10
 RATE=0.8
@@ -26,11 +27,9 @@ if not os.path.exists(RESULTS):
     os.mkdir(RESULTS)
 
 df = pd.read_csv(LABELS)
-CLASSES=list(df.label.unique())
+CLASSES=list(train_df.label.unique())
 
-train_df, val_df = train_test_split(train_df, test_size=0.1)
-train_df.to_csv(os.path.join(RESULTS, 'train.csv'), index=False)
-val_df.to_csv(os.path.join(RESULTS, 'val.csv'), index=False)
+train_df, val_df = pd.read_csv('train.csv'), pd.read_csv('val.csv')
 
 del df, discard
 
@@ -78,7 +77,7 @@ callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=1)
+    model = load_model('checkpoint.h5')
     model.compile(optimizer=Adam(learning_rate=0.0),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
