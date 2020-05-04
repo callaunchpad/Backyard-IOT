@@ -77,7 +77,7 @@ callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    model = load_model('checkpoint.h5')
+    model = load_model('sessions/7/checkpoint.h5')
     model.compile(optimizer=Adam(learning_rate=0.0),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
