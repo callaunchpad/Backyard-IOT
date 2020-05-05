@@ -79,7 +79,7 @@ callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=1)
+    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=0.5)
     model.load_weights(MODEL_PATH)
     model.compile(optimizer=Adam(learning_rate=0.0),
                   loss='categorical_crossentropy',

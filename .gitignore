@@ -10,3 +10,6 @@ Data/*
 SqueezeNet/testing
 */__pycache__
 */sessions
+*/results
+*/*.h5
+*/*.csv
