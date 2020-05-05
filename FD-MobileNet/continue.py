@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.models import load_model
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
 import os
@@ -17,6 +16,7 @@ INIT_LR=1e-5
 STEP=10
 RATE=0.8
 
+MODEL_PATH = 'sessions/8/results/checkpoint.h5'
 IMAGES = '../Data/iwildcam/images'
 LABELS = 'train.csv'
 WIDTH, HEIGHT = (512, 374)
@@ -75,10 +75,13 @@ callbacks.append(tf.keras.callbacks.LearningRateScheduler(scheduler))
 #checkpoint
 callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'))
 
-model = load_model('sessions/8/results/checkpoint.h5')
-#model.compile(optimizer=Adam(learning_rate=0.0),
-#          loss='categorical_crossentropy',
-#          metrics=['accuracy'])
+strategy = tf.distribute.MirroredStrategy()
+with strategy.scope():
+    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=1)
+    model.load_weights(MODEL_PATH)
+    model.compile(optimizer=Adam(learning_rate=0.0),
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
 
 history = model.fit(
     train_generator,
