@@ -11,13 +11,13 @@ from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 
 BATCH_SIZE=256
-NUM_EPOCHS=50
+NUM_EPOCHS=20
 INIT_LR=1e-5
 STEP=10
 RATE=0.8
 
 IMAGES = '../Data/iwildcam/images'
-LABELS = 'train.csv'
+LABELS = '../FD-MobileNet/train.csv'
 WIDTH, HEIGHT = (512, 374)
 
 
@@ -28,11 +28,12 @@ if not os.path.exists(RESULTS):
 df = pd.read_csv(LABELS)
 CLASSES=list(df.label.unique())
 
+df, _ = train_test_split(df, test_size=2000)
 train_df, val_df = train_test_split(df, test_size=0.1)
 train_df.to_csv(os.path.join(RESULTS, 'train.csv'), index=False)
 val_df.to_csv(os.path.join(RESULTS, 'val.csv'), index=False)
 
-del df
+del df, _
 
 datagen = ImageDataGenerator(
     rescale=1/.255)
