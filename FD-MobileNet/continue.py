@@ -27,11 +27,11 @@ if not os.path.exists(RESULTS):
     os.mkdir(RESULTS)
 
 df = pd.read_csv(LABELS)
-CLASSES=list(train_df.label.unique())
+CLASSES=list(df.label.unique())
 
 train_df, val_df = pd.read_csv('train.csv'), pd.read_csv('val.csv')
 
-del df, discard
+del df
 
 datagen = ImageDataGenerator(
     rescale=1/.255)
