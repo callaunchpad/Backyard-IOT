@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(1, '../FD-MobileNet')
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
@@ -10,7 +12,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 
-BATCH_SIZE=256
+BATCH_SIZE=32
 NUM_EPOCHS=20
 INIT_LR=1e-5
 STEP=10
@@ -28,7 +30,7 @@ if not os.path.exists(RESULTS):
 df = pd.read_csv(LABELS)
 CLASSES=list(df.label.unique())
 
-df, _ = train_test_split(df, test_size=2000)
+df, _ = train_test_split(df, train_size=2000)
 train_df, val_df = train_test_split(df, test_size=0.1)
 train_df.to_csv(os.path.join(RESULTS, 'train.csv'), index=False)
 val_df.to_csv(os.path.join(RESULTS, 'val.csv'), index=False)
@@ -79,7 +81,7 @@ callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor
 
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=1)
+    model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), alpha=0.5)
     model.compile(optimizer=Adam(learning_rate=0.0),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
