@@ -7,15 +7,24 @@ import cv2
 import h5py
 import time
 import json
+import os
+import random
 global sess, graph
 sess = tf.InteractiveSession()
 graph = tf.get_default_graph()
-TFLITE = False
-#changed kereas.models to tensorflow.keras.models for mobilenet
+
+from tensorflow.keras import backend, layers, models, utils
+def hard_sigmoid(x):
+    return layers.ReLU(6.)(x + 3.) * (1. / 6.)
+def hard_swish(x):
+    return layers.Multiply()([layers.Activation(hard_sigmoid)(x), x])
+
+TFLITE = True
 if not TFLITE:
-  model = tf.keras.models.load_model('simple_squeezenet.h5', custom_objects = None, compile=True)
+    #model = tf.keras.models.load_model('mobilev3.h5', custom_objects = None, compile=True)
+    model = tf.keras.models.load_model('mobilenetv3.h5', custom_objects = {'hard_swish': hard_swish, 'hard_sigmoid': hard_sigmoid}, compile=True)
 else:
-  tflite_model = tf.lite.Interpreter('mobilenet.tflite')
+  tflite_model = tf.lite.Interpreter('mobilenetv3.tflite')
   tflite_model.allocate_tensors()
   inp_det = tflite_model.get_input_details()
   out_det = tflite_model.get_output_details()
@@ -43,14 +52,18 @@ class Camera(object):
       with graph.as_default():
         now = time.time()
         print('new loop', 0)
-        ret, cap = self.capture.read()
-        image = cv2.resize(cap, (300, 300))
+        #ret, cap = self.capture.read()
+        
+        filename = "images/" + random.choice(os.listdir("images/"))
+        print(filename)
+        cap = cv2.imread(filename, 0)
+        
+        image = cv2.resize(cap, (224, 224))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = np.expand_dims(image, axis=0)
         image = image/255
         image = image.astype(np.float32)
         now2 = time.time()
-        print('resized', now2 - now)
         if not TFLITE:
             guess = model.predict(np.array(image))
         else:
@@ -61,13 +74,12 @@ class Camera(object):
         print('predicted', now3 - now2)
         convert = np.array(['dog', 'horse', 'elephant', 'butterfly', 'chicken', 'cat',
           'cow', 'sheep', 'spider', 'squirrel'], dtype='<U8')
+        
         bestGuess = max(guess[0])
         bestGuessIndex = np.where(guess[0] == bestGuess)[0][0]
         
-        #prediction = convert[bestGuessIndex]
-        print(bestGuess)
-        #print(prediction, time.time() - now3)
-        print(bestGuessIndex, time.time() - now3)
+        prediction = convert[bestGuessIndex]
+        print("Predicted: " + prediction)
         
         #if bestGuess > .7:
         #  msg = 'confident: ' + str(bestGuess) + " " + prediction
@@ -84,7 +96,7 @@ class Camera(object):
         #return jpeg.tobytes(), totalTime
         totalTime = time.time() - now
         res = {"results": {}}
-        res["inference time"] = now3 - now2
+        res["inference time"] = now3-now2
         for i in range(convert.size):
             res["results"][convert[i]] = str(guess[0][i])
         print(res)
