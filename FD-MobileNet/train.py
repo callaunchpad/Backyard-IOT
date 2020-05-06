@@ -1,19 +1,42 @@
+import os
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--alpha')
+parser.add_argument('--gpus')
+args = var(parser.parse_args())
+alpha = int(args['alpha'])
+os.environ['CUDA_VISIBLE_DEVICES'] = args['gpus']
+
+
+RESULTS='results'
+if not os.path.exists(RESULTS):
+    os.mkdir(RESULTS)
+
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 from keras_fdmobilenet import FDMobileNet
 from collections import Counter
+import pickle
+from prettytable import PrettyTable
 
-BATCH_SIZE=256
+BATCH_SIZE=32
 NUM_EPOCHS=30
-INIT_LR=0.001
+INIT_LR=1e-4
+STEP=10
+RATE=0.8
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
 PATH = '../Data/animals10/raw-img/'
 
 datagen = ImageDataGenerator(rescale=1./255,
-    validation_split=0.1)
+    validation_split=0.1,
+    rotation_range=0.1,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    zoom_range=0.1)
 
 train_generator = datagen.flow_from_directory(
     PATH,
@@ -35,10 +58,19 @@ counter = Counter(train_generator.classes)
 max_val = float(max(counter.values()))       
 class_weights = {class_id : max_val/num_images for class_id, num_images in counter.items()}
 
+callbacks = []
+
+#Multiplies learning rate by RATE every STEP epochs, starting at INIT_LR
+scheduler = lambda epoch: INIT_LR * (RATE ** (epoch // STEP))
+callbacks.append(tf.keras.callbacks.LearningRateScheduler(scheduler))
+
+#checkpoint
+callbacks.append(ModelCheckpoint(os.path.join(RESULTS, "checkpoint.h5"), monitor='val_accuracy', verbose=1, save_best_only=True, mode='max'))
+
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
-    model = FDMobileNet()
-    model.compile(optimizer=Adam(learning_rate=0.001),
+    model = FDMobileNet(input_shape=HEIGHT, WIDTH, 3), classes=CLASSES, alpha=alpha)
+    model.compile(optimizer=Adam(learning_rate=0.0),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
@@ -48,7 +80,18 @@ history = model.fit(
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE,
     epochs=NUM_EPOCHS,
-    class_weight=class_weights
+    class_weight=class_weights, callbacks=callbacks
 )
 
-model.save('model.h5')
+model.save(os.path.join(RESULTS, 'model.h5'))
+
+with open(os.path.join(RESULTS, 'history.pkl'), 'wb') as f:
+    pickle.dump(history.history, f)
+    
+headers=['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss', 'lr']
+table = PrettyTable(headers)
+for i in range(NUM_EPOCHS):
+    table.add_row([i+1] + [history.history[header][i] for header in headers[1:]])
+with open(os.path.join(RESULTS, 'table.txt'), 'w') as f:
+    f.write(str(table))
+
