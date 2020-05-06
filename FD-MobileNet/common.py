@@ -3,7 +3,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--alpha')
 parser.add_argument('--gpus')
-args = var(parser.parse_args())
+args = vars(parser.parse_args())
 alpha = int(args['alpha'])
 os.environ['CUDA_VISIBLE_DEVICES'] = args['gpus']
 
@@ -24,10 +24,10 @@ RATE=0.8
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10
-PATH = '../Data/animals10/raw-img/'
+PATH = '/home/memerling/Backyard-IOT/Data/animals10/raw-img/'
 
 datagen = ImageDataGenerator(rescale=1./255,
-    validation_split=0.1,
+    validation_split=0.05,
     rotation_range=0.1,
     width_shift_range=0.1,
     height_shift_range=0.1,
