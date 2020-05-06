@@ -18,7 +18,7 @@ RATE=0.8
 
 IMAGES = '../Data/iwildcam/images'
 LABELS = 'train.csv'
-WIDTH, HEIGHT = (512, 374)
+WIDTH, HEIGHT = (224, 224)
 
 
 RESULTS='results'
