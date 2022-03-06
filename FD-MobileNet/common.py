@@ -3,8 +3,9 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--alpha')
 parser.add_argument('--gpus')
+parser.add_argument('--from')
 args = vars(parser.parse_args())
-alpha = int(args['alpha'])
+alpha = float(args['alpha'])
 os.environ['CUDA_VISIBLE_DEVICES'] = args['gpus']
 
 import tensorflow as tf
@@ -16,11 +17,11 @@ from collections import Counter
 import pickle
 from prettytable import PrettyTable
 
-BATCH_SIZE=32
-NUM_EPOCHS=30
-INIT_LR=1e-4
-STEP=10
-RATE=0.8
+BATCH_SIZE=24
+NUM_EPOCHS=50
+INIT_LR=1e-5
+STEP=4
+RATE=0.7
 
 WIDTH, HEIGHT = (224, 224)
 CLASSES=10

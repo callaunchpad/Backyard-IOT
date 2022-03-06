@@ -1,4 +1,6 @@
-MODEL_PATH = 'checkpoint.h5'
+from common import *
+
+MODEL_PATH = args['from']
 
 with strategy.scope():
     model = FDMobileNet(input_shape=(HEIGHT, WIDTH, 3), classes=CLASSES, alpha=alpha)
